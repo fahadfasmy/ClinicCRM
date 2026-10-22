@@ -1,0 +1,19 @@
+# Clinic CRM — what the web server must never hand out.
+# Works on Apache 2.4 and LiteSpeed (Hostinger). Local `php -S` ignores this file; tests/http_protect_test.php checks it on a real server.
+
+# No folder listings anywhere
+Options -Indexes
+
+# Database dumps, schema files, notes, logs, backups and config examples are never served
+<FilesMatch "\.(sql|sql\.gz|md|txt|log|bak|old|orig|swp|ini|env|sh|dist|example|lock)$">
+    Require all denied
+</FilesMatch>
+
+# Hidden files (.git, .env, .claude …) except the well-known folder used for certificates
+<FilesMatch "^\.(?!well-known)">
+    Require all denied
+</FilesMatch>
+
+# Folders that hold code, tests, tools, local test data, uploads and backups: answer "not found"
+# (includes/ is only ever loaded by PHP itself, never by a browser)
+RedirectMatch 404 ^/(includes|local|tests|tools|migrations|storage|backups|lang|deploy|docs|\.claude|\.git)(/|$)

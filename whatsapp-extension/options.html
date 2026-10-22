@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Clinic CRM – WhatsApp capture settings</title>
+<link rel="stylesheet" href="ui.css">
+</head>
+<body>
+  <main class="wrap">
+    <header class="brand">
+      <span class="logo">C</span>
+      <div>
+        <h1>WhatsApp capture</h1>
+        <p class="muted">Connects WhatsApp Web on this computer to Clinic CRM.</p>
+      </div>
+    </header>
+
+    <section class="card">
+      <label for="crmUrl">CRM address</label>
+      <input id="crmUrl" type="url" placeholder="https://crm.yourclinic.ae" autocomplete="off">
+      <p class="hint">The address you use to open the CRM, without a page name.</p>
+
+      <label for="apiKey">API key</label>
+      <input id="apiKey" type="password" placeholder="crm_…" autocomplete="off">
+      <p class="hint">Create one in the CRM under <b>Setup → WhatsApp Capture</b>. Use a separate key per computer.</p>
+
+      <label class="check">
+        <input id="autoCapture" type="checkbox">
+        <span>Automatically add unread chats from <b>unsaved numbers</b> as new leads</span>
+      </label>
+
+      <div class="actions">
+        <button id="save" class="btn">Save &amp; test</button>
+        <span id="status" class="status"></span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Good to know</h2>
+      <ul class="muted list">
+        <li>Capture only runs while web.whatsapp.com is open in this browser.</li>
+        <li>The extension never sends WhatsApp messages or changes your chats.</li>
+        <li>Numbers that are already in the CRM are never added twice.</li>
+        <li>Keep WhatsApp Web in English so unread chats are detected reliably.</li>
+      </ul>
+    </section>
+  </main>
+  <script src="options.js"></script>
+</body>
+</html>

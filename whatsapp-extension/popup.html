@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="ui.css">
+</head>
+<body class="popup">
+  <header class="brand">
+    <span class="logo">C</span>
+    <div>
+      <h1>Clinic CRM</h1>
+      <p class="muted" id="conn">Checking…</p>
+    </div>
+  </header>
+
+  <div class="stats">
+    <div><span class="num" id="today">0</span><span class="muted">leads captured today</span></div>
+  </div>
+
+  <label class="check">
+    <input id="autoCapture" type="checkbox">
+    <span>Auto-capture new chats</span>
+  </label>
+
+  <div class="stack">
+    <button id="diag" class="btn ghost">Check this WhatsApp page</button>
+    <pre id="diagOut" class="diag" hidden></pre>
+    <button id="settings" class="btn ghost">Settings</button>
+    <button id="openCrm" class="btn">Open CRM</button>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sample schema for the DHA eClaimLink Claim.Submission file, written from the published structure (Header, Claim,
+     Encounter, Diagnosis, Activity, Resubmission). Used by tests/insurance_test.php to check the export's shape and types.
+     It is NOT DHA's official schema: before go-live, validate one real export in the eClaimLink portal (insurance officer). -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <xs:simpleType name="DateTime"><xs:restriction base="xs:string"><xs:pattern value="\d{2}/\d{2}/\d{4} \d{2}:\d{2}"/></xs:restriction></xs:simpleType>
+  <xs:simpleType name="Money"><xs:restriction base="xs:decimal"><xs:fractionDigits value="2"/><xs:minInclusive value="0"/></xs:restriction></xs:simpleType>
+  <xs:simpleType name="NonEmpty"><xs:restriction base="xs:string"><xs:minLength value="1"/></xs:restriction></xs:simpleType>
+  <xs:simpleType name="EmiratesID"><xs:restriction base="xs:string"><xs:pattern value="\d{3}-\d{4}-\d{7}-\d"/></xs:restriction></xs:simpleType>
+  <xs:element name="Claim.Submission">
+    <xs:complexType><xs:sequence>
+      <xs:element name="Header">
+        <xs:complexType><xs:sequence>
+          <xs:element name="SenderID" type="NonEmpty"/>
+          <xs:element name="ReceiverID" type="NonEmpty"/>
+          <xs:element name="TransactionDate" type="DateTime"/>
+          <xs:element name="RecordCount" type="xs:positiveInteger"/>
+          <xs:element name="DispositionFlag"><xs:simpleType><xs:restriction base="xs:string"><xs:enumeration value="PRODUCTION"/><xs:enumeration value="TEST"/></xs:restriction></xs:simpleType></xs:element>
+        </xs:sequence></xs:complexType>
+      </xs:element>
+      <xs:element name="Claim" maxOccurs="unbounded">
+        <xs:complexType><xs:sequence>
+          <xs:element name="ID" type="NonEmpty"/>
+          <xs:element name="IDPayer" type="xs:string"/>
+          <xs:element name="MemberID" type="NonEmpty"/>
+          <xs:element name="PayerID" type="NonEmpty"/>
+          <xs:element name="ProviderID" type="NonEmpty"/>
+          <xs:element name="EmiratesIDNumber" type="EmiratesID"/>
+          <xs:element name="Gross" type="Money"/>
+          <xs:element name="PatientShare" type="Money"/>
+          <xs:element name="Net" type="Money"/>
+          <xs:element name="Encounter">
+            <xs:complexType><xs:sequence>
+              <xs:element name="FacilityID" type="NonEmpty"/>
+              <xs:element name="Type" type="xs:positiveInteger"/>
+              <xs:element name="PatientID" type="NonEmpty"/>
+              <xs:element name="Start" type="DateTime"/>
+              <xs:element name="End" type="DateTime"/>
+              <xs:element name="StartType" type="xs:positiveInteger"/>
+              <xs:element name="EndType" type="xs:positiveInteger"/>
+            </xs:sequence></xs:complexType>
+          </xs:element>
+          <xs:element name="Diagnosis" maxOccurs="unbounded">
+            <xs:complexType><xs:sequence>
+              <xs:element name="Type"><xs:simpleType><xs:restriction base="xs:string"><xs:enumeration value="Principal"/><xs:enumeration value="Secondary"/><xs:enumeration value="Admitting"/></xs:restriction></xs:simpleType></xs:element>
+              <xs:element name="Code"><xs:simpleType><xs:restriction base="xs:string"><xs:pattern value="[A-Z][0-9][0-9A-Z](\.[0-9A-Z]{1,4})?"/></xs:restriction></xs:simpleType></xs:element>
+            </xs:sequence></xs:complexType>
+          </xs:element>
+          <xs:element name="Activity" maxOccurs="unbounded">
+            <xs:complexType><xs:sequence>
+              <xs:element name="ID" type="NonEmpty"/>
+              <xs:element name="Start" type="DateTime"/>
+              <xs:element name="Type" type="xs:positiveInteger"/>
+              <xs:element name="Code" type="NonEmpty"/>
+              <xs:element name="Quantity" type="xs:decimal"/>
+              <xs:element name="Net" type="Money"/>
+              <xs:element name="Clinician" type="NonEmpty"/>
+              <xs:element name="PriorAuthorizationID" type="xs:string" minOccurs="0"/>
+            </xs:sequence></xs:complexType>
+          </xs:element>
+          <xs:element name="Resubmission" minOccurs="0">
+            <xs:complexType><xs:sequence>
+              <xs:element name="Type"><xs:simpleType><xs:restriction base="xs:string"><xs:enumeration value="correction"/><xs:enumeration value="internal complaint"/><xs:enumeration value="legacy"/><xs:enumeration value="reconciliation"/></xs:restriction></xs:simpleType></xs:element>
+              <xs:element name="Comment" type="NonEmpty"/>
+            </xs:sequence></xs:complexType>
+          </xs:element>
+        </xs:sequence></xs:complexType>
+      </xs:element>
+    </xs:sequence></xs:complexType>
+  </xs:element>
+</xs:schema>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>WhatsApp Web mock (local test only)</title>
+<style>
+  body { margin: 0; font-family: system-ui; display: flex; height: 100vh; background: #efeae2; }
+  #side { width: 340px; background: #fff; border-right: 1px solid #ddd; }
+  #pane-side [role="listitem"] { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #f0f0f0; cursor: pointer; }
+  #main { flex: 1; } header { background: #f0f2f5; padding: 14px; }
+  .message-in { background: #fff; margin: 10px; padding: 8px 10px; border-radius: 8px; width: max-content; }
+  .unread { background: #25d366; color: #fff; border-radius: 10px; padding: 0 6px; font-size: 12px; }
+</style>
+</head>
+<body>
+<!-- Mimics the parts of WhatsApp Web the extension reads: #pane-side rows, span[title], unread aria-label, #main header, data-id, .message-in -->
+<div id="side"><div id="pane-side" role="grid">
+  <div role="listitem" data-chat="new1"><div><span dir="auto" title="+971 52 777 8899">+971 52 777 8899</span><br><span title="Hello, do you do lip filler?">Hello, do you do lip filler?</span></div><span class="unread" aria-label="2 unread messages">2</span></div>
+  <div role="listitem" data-chat="saved"><div><span dir="auto" title="Mum">Mum</span><br><span title="Call me">Call me</span></div><span class="unread" aria-label="1 unread message">1</span></div>
+  <div role="listitem" data-chat="read"><div><span dir="auto" title="+971 50 444 5566">+971 50 444 5566</span><br><span title="Thanks!">Thanks!</span></div></div>
+  <div role="listitem" data-chat="existing"><div><span dir="auto" title="+971 55 000 1122">+971 55 000 1122</span><br><span title="Hi again">Hi again</span></div><span class="unread" aria-label="1 unread message">1</span></div>
+  <div role="listitem" data-chat="group"><div><span data-icon="default-group"></span><span dir="auto" title="+971 56 111 2233">+971 56 111 2233</span><br><span title="group msg">group msg</span></div><span class="unread" aria-label="5 unread messages">5</span></div>
+</div></div>
+<div id="main"></div>
+
+<script>
+// ── Test harness: open a chat by clicking a row ──
+const chats = {
+  new1:     { title: '+971 52 777 8899', id: 'false_971527778899@c.us_AAA', msg: 'Hello, do you do lip filler?' },
+  saved:    { title: 'Sara Contact',     id: 'false_971509998877@c.us_BBB', msg: 'Is Friday available?' },
+  read:     { title: '+971 50 444 5566', id: 'false_971504445566@c.us_CCC', msg: 'Thanks!' },
+  existing: { title: '+971 55 000 1122', id: 'false_971550001122@c.us_DDD', msg: 'Hi again' },
+};
+document.querySelectorAll('[data-chat]').forEach(row => row.addEventListener('click', () => {
+  const c = chats[row.dataset.chat]; if (!c) return;
+  document.getElementById('main').innerHTML =
+    `<header><span dir="auto" title="${c.title}">${c.title}</span></header>
+     <div class="message-in" data-id="${c.id}"><span class="selectable-text">${c.msg}</span></div>`;
+}));
+
+// ── Minimal chrome.* stub that routes to the local CRM API ──
+let KEY = '';
+const mem = { sync: { crmUrl: location.origin, apiKey: KEY, autoCapture: true }, local: {} };
+const store = (area) => ({
+  get: async (keys) => { const o = {}; [].concat(keys || Object.keys(mem[area])).forEach(k => { if (k in mem[area]) o[k] = mem[area][k]; }); return o; },
+  set: async (obj) => Object.assign(mem[area], obj),
+});
+window.captureLog = [];
+window.chrome = {
+  storage: { sync: store('sync'), local: store('local'), onChanged: { addListener() {} } },
+  runtime: {
+    onMessage: { addListener() {} },
+    sendMessage(msg, cb) {
+      (async () => {
+        if (msg.type === 'settings') return cb(mem.sync);
+        const url = new URL('/pages/api_whatsapp.php', location.origin);
+        url.searchParams.set('action', msg.action);
+        Object.entries(msg.params || {}).forEach(([k, v]) => url.searchParams.set(k, v));
+        const res = await fetch(url, { method: msg.body ? 'POST' : 'GET', headers: { 'X-CRM-Key': KEY, 'Content-Type': 'application/json' }, body: msg.body ? JSON.stringify(msg.body) : undefined });
+        const data = await res.json();
+        if (msg.action === 'capture') captureLog.push({ sent: msg.body, got: data });
+        cb({ ok: res.ok, status: res.status, data });
+      })();
+    },
+  },
+};
+</script>
+<script>
+fetch('/local/test_api_key.txt').then(r => r.text()).then(k => {
+  KEY = k.trim(); mem.sync.apiKey = KEY;
+  const s = document.createElement('script'); s.src = '/whatsapp-extension/content.js'; document.body.appendChild(s);
+});
+</script>
+</body>
+</html>
